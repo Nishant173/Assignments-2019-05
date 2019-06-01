@@ -28,13 +28,11 @@ def take_index_return_balances(row_index):
         # Condition to see if accountType == "checking"; If yes, perform some actions, else pass
         if(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['accountType'] == "checking"):
             try:
-                df_temp = pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions']
-                df_temp = pd.DataFrame(df_temp)
+                df_temp = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions'])
                 df_temp["postedDate"] = df_temp["postedDate"].apply(convert_ts_dt)
                 df_temp.sort_values(by = "postedDate", inplace=True)
                 open_bal = df_temp.head(1)['balance']; close_bal = df_temp.tail(1)['balance'];
-                indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]
-                indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer]
+                indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]; indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer];
                 bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(df.LoanId[row_index]))
             except KeyError:
                 pass
@@ -45,7 +43,7 @@ def take_index_return_balances(row_index):
             pass
 # End of function
 
-# Function call for all rows ("run_the_function" variable is useless)
+# Function call for all rows ("run_the_function" variable is useless; Just meant to populate the 3 lists)
 run_the_function = [take_index_return_balances(item) for item in range(rows)]
 
 # Desired DataFrame (This dataframe has NaNs)
@@ -77,13 +75,11 @@ def take_index_return_balances_remove_rows_with_missing_values(row_index):
         # Condition to see if accountType == "checking"; If yes, perform some actions, else pass
         if(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['accountType'] == "checking"):
             try:
-                df_temp = pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions']
-                df_temp = pd.DataFrame(df_temp)
+                df_temp = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions'])
                 df_temp["postedDate"] = df_temp["postedDate"].apply(convert_ts_dt)
                 df_temp.sort_values(by = "postedDate", inplace=True)
                 open_bal = df_temp['balance'].dropna().head(1); close_bal = df_temp['balance'].dropna().tail(1); # The change
-                indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]
-                indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer]
+                indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]; indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer];
                 bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(df.LoanId[row_index]))
             except KeyError:
                 pass
@@ -94,7 +90,7 @@ def take_index_return_balances_remove_rows_with_missing_values(row_index):
             pass
 # End of function
 
-# Function call for all rows ("run_the_function_2" variable is useless)
+# Function call for all rows ("run_the_function_2" variable is useless; Just meant to populate the 3 lists)
 run_the_function_2 = [take_index_return_balances_remove_rows_with_missing_values(item) for item in range(rows)]
 
 # Desired DataFrame? (Without NaNs)
