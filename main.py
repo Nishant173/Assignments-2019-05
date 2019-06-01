@@ -48,20 +48,22 @@ def take_index_return_balances(row_index):
 # Function call for all rows ("run_the_function" variable is useless)
 run_the_function = [take_index_return_balances(item) for item in range(rows)]
 
-# Desired DataFrame
+# Desired DataFrame (This dataframe has NaNs)
 df_final = pd.DataFrame({
     "Loan IDs": loan_ids, "Balance open": bal_open, "Balance close": bal_close
 })
+df_final
 
 ### ==============================================================================================================
 
-# NaN check
-test = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[7])['accounts'][0]['transactions'])
-test["postedDate"] = test["postedDate"].map(convert_ts_dt)
-test.sort_values(by = "postedDate", inplace=True)
-test.head()
-test.tail()
+# NaN check - Checking for index=7 first; Intent: Remove the NaNs
+df_rm_nan = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[7])['accounts'][0]['transactions'])
+df_rm_nan["postedDate"] = df_rm_nan["postedDate"].map(convert_ts_dt)
+df_rm_nan.sort_values(by = "postedDate", inplace=True)
+df_rm_nan.head()
+df_rm_nan.tail()
 
+# Same function as above, but at has one line of changes; Removes NaNs
 """ Accounting for missing values for Balance column (NaNs), and removing them """
 # Function that takes rows (by index) and returns 3 lists: Balance open, Balance close, Loan IDs
 bal_open = []; bal_close = []; loan_ids = [];
@@ -95,8 +97,8 @@ def take_index_return_balances_remove_rows_with_missing_values(row_index):
 # Function call for all rows ("run_the_function_2" variable is useless)
 run_the_function_2 = [take_index_return_balances_remove_rows_with_missing_values(item) for item in range(rows)]
 
-# Desired DataFrame?
-df_final_removed_NaNs = pd.DataFrame({
+# Desired DataFrame? (Without NaNs)
+df_final_removed_nan = pd.DataFrame({
     "Loan IDs": loan_ids, "Balance open": bal_open, "Balance close": bal_close
 })
-df_final_removed_NaNs
+df_final_removed_nan
