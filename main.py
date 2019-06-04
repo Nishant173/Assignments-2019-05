@@ -16,85 +16,78 @@ def convert_ts_dt(ts):
     date = datetime.datetime.fromtimestamp(ts / 1e3)
     return date
 
-# Function that takes rows (by index) and returns 3 lists: Balance open, Balance close, Loan IDs
-bal_open = []; bal_close = []; loan_ids = [];
-def take_index_return_balances(row_index):
+# Function 1 - Not dealing with missing values
+def get_balances(LoanID, BankReport):
     """
-    Function that takes rows (by index) and returns 3 lists: Balance open, Balance close, Loan IDs
+    Function that takes LoanID and BankReport as arguments, and gives 5 lists: LoanID, AccountID,
+    AccountNumber, BalanceOpen, BalanceClose - to populate into a DataFrame.
     """
-    # Takes length of dict for each of the "accounts"
-    length_of_account_indices = len(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'])
-    for account_index in range(length_of_account_indices):
-        # Condition to see if accountType == "checking"; If yes, perform some actions, else pass
-        if(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['accountType'] == "checking"):
+    for account in parse(BankReport)['accounts']:
+        if(account['accountType'] == "checking"):
             try:
-                df_temp = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions'])
+                acc_id = int(account['accountId'])
+                acc_number = account['accountNumber']
+                df_temp = pd.DataFrame(account['transactions'])
                 df_temp["postedDate"] = df_temp["postedDate"].apply(convert_ts_dt)
                 df_temp.sort_values(by = "postedDate", inplace=True)
                 open_bal = df_temp.head(1)['balance']; close_bal = df_temp.tail(1)['balance'];
                 indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]; indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer];
-                bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(df.LoanId[row_index]))
+                bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(LoanID));
+                acc_ids.append(acc_id); acc_numbers.append(acc_number);
             except KeyError:
                 pass
             finally:
-                # print("\nLoadID: {}; RowIndex: {}; AccountIndexForThatRow: {}".format(int(df.LoanId[row_index]), row_index, account_index))
+                # print("\n---\n\nLoanID: {}, \nAccountID: {}, \nAccountNumber{}, \nBalanceOpen: {}, \nBalanceClose: {}".format(loan_ids, acc_ids, acc_numbers, bal_open, bal_close))
                 pass
-        else:
-            pass
-# End of function
 
-# Function call for all rows ("run_the_function" variable is useless; Just meant to populate the 3 lists)
-run_the_function = [take_index_return_balances(item) for item in range(rows)]
+# Initialize the 5 lists to be used to create the DataFrame
+bal_open = []; bal_close = []; loan_ids = []; acc_ids = []; acc_numbers = [];
 
-# Desired DataFrame (This dataframe has NaNs)
+# Function calls for all rows
+for row_index in range(rows):
+    get_balances(df["LoanId"][row_index], df["BankReportData"][row_index])
+
+# Create DatFrame
 df_final = pd.DataFrame({
-    "Loan IDs": loan_ids, "Balance open": bal_open, "Balance close": bal_close
+    "Loan IDs": loan_ids, "Account ID": acc_ids, "Account Number": acc_numbers,
+    "Balance open": bal_open, "Balance close": bal_close
 })
 df_final
 
-### ==============================================================================================================
-
-# NaN check - Checking for index=7 first; Intent: Remove the NaNs
-df_rm_nan = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[7])['accounts'][0]['transactions'])
-df_rm_nan["postedDate"] = df_rm_nan["postedDate"].map(convert_ts_dt)
-df_rm_nan.sort_values(by = "postedDate", inplace=True)
-df_rm_nan.head()
-df_rm_nan.tail()
-
-# Same function as above, but at has one line of changes; Removes NaNs
-""" Accounting for missing values for Balance column (NaNs), and removing them """
-# Function that takes rows (by index) and returns 3 lists: Balance open, Balance close, Loan IDs
-bal_open = []; bal_close = []; loan_ids = [];
-def take_index_return_balances_remove_rows_with_missing_values(row_index):
+# Function 2 - Dealing with missing values
+def get_balances_remove_nans(LoanID, BankReport):
     """
-    Function that takes rows (by index) and returns 3 lists: Balance open, Balance close, Loan IDs
+    Function that takes LoanID and BankReport as arguments, and gives 5 lists: LoanID, AccountID,
+    AccountNumber, BalanceOpen, BalanceClose - to populate into a DataFrame.
     """
-    # Takes length of dict for each of the "accounts"
-    length_of_account_indices = len(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'])
-    for account_index in range(length_of_account_indices):
-        # Condition to see if accountType == "checking"; If yes, perform some actions, else pass
-        if(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['accountType'] == "checking"):
+    for account in parse(BankReport)['accounts']:
+        if(account['accountType'] == "checking"):
             try:
-                df_temp = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[row_index])['accounts'][account_index]['transactions'])
+                acc_id = int(account['accountId'])
+                acc_number = account['accountNumber']
+                df_temp = pd.DataFrame(account['transactions'])
                 df_temp["postedDate"] = df_temp["postedDate"].apply(convert_ts_dt)
                 df_temp.sort_values(by = "postedDate", inplace=True)
                 open_bal = df_temp['balance'].dropna().head(1); close_bal = df_temp['balance'].dropna().tail(1); # The change
                 indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]; indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer];
-                bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(df.LoanId[row_index]))
+                bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(LoanID));
+                acc_ids.append(acc_id); acc_numbers.append(acc_number);
             except KeyError:
                 pass
             finally:
-                # print("\nLoadID: {}; RowIndex: {}; AccountIndexForThatRow: {}".format(int(df.LoanId[row_index]), row_index, account_index))
+                # print("\n---\n\nLoanID: {}, \nAccountID: {}, \nAccountNumber{}, \nBalanceOpen: {}, \nBalanceClose: {}".format(loan_ids, acc_ids, acc_numbers, bal_open, bal_close))
                 pass
-        else:
-            pass
-# End of function
 
-# Function call for all rows ("run_the_function_2" variable is useless; Just meant to populate the 3 lists)
-run_the_function_2 = [take_index_return_balances_remove_rows_with_missing_values(item) for item in range(rows)]
+# Initialize the 5 lists to be used to create the DataFrame
+bal_open = []; bal_close = []; loan_ids = []; acc_ids = []; acc_numbers = [];
 
-# Desired DataFrame? (Without NaNs)
-df_final_removed_nan = pd.DataFrame({
-    "Loan IDs": loan_ids, "Balance open": bal_open, "Balance close": bal_close
+# Function calls for all rows
+for row_index in range(rows):
+    get_balances_remove_nans(df["LoanId"][row_index], df["BankReportData"][row_index])
+
+# Create DatFrame
+df_final_remove_nans = pd.DataFrame({
+    "Loan IDs": loan_ids, "Account ID": acc_ids, "Account Number": acc_numbers,
+    "Balance open": bal_open, "Balance close": bal_close
 })
-df_final_removed_nan
+df_final_remove_nans
