@@ -20,7 +20,7 @@ def convert_ts_dt(ts):
 def get_balances(LoanID, BankReport):
     """
     Function that takes LoanID and BankReport as arguments, and gives 5 lists: LoanID, AccountID,
-    AccountNumber, BalanceOpen, BalanceClose - to populate into a DataFrame.
+    AccountNumber, BalanceOpen, BalanceClose - that need to be populated into a DataFrame.
     """
     for account in parse(BankReport)['accounts']:
         if(account['accountType'] == "checking"):
@@ -34,6 +34,10 @@ def get_balances(LoanID, BankReport):
                 indexer = open_bal.index[0]; open_bal = open_bal.loc[indexer]; indexer = close_bal.index[0]; close_bal = close_bal.loc[indexer];
                 bal_open.append(open_bal); bal_close.append(close_bal); loan_ids.append(int(LoanID));
                 acc_ids.append(acc_id); acc_numbers.append(acc_number);
+                """return pd.DataFrame({
+                        "Loan ID": int(LoanID), "Account ID": acc_id, "Account number": acc_number,
+                        "Balance open": open_bal, "Balance close": close_bal
+                        }, index=[0])"""
             except KeyError:
                 pass
             finally:
@@ -58,7 +62,7 @@ df_final
 def get_balances_remove_nans(LoanID, BankReport):
     """
     Function that takes LoanID and BankReport as arguments, and gives 5 lists: LoanID, AccountID,
-    AccountNumber, BalanceOpen, BalanceClose - to populate into a DataFrame.
+    AccountNumber, BalanceOpen, BalanceClose - that need to be populated into a DataFrame.
     """
     for account in parse(BankReport)['accounts']:
         if(account['accountType'] == "checking"):
