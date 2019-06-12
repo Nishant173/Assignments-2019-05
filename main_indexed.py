@@ -17,6 +17,7 @@ def convert_ts_dt(ts):
     date = datetime.datetime.fromtimestamp(ts / 1e3)
     return date
 
+# Function 1
 # Function that takes rows (by index) and returns 5 lists
 bal_open = []; bal_close = []; loan_ids = []; acc_ids = []; acc_numbers = [];
 def take_index_return_balances(row_index):
@@ -61,15 +62,7 @@ df_final = pd.DataFrame({
 })
 df_final
 
-### ==============================================================================================================
-
-# NaN check - Checking for index=7 first; Intent: Remove the NaNs
-df_rm_nan = pd.DataFrame(pd.DataFrame(df.BankReportData.apply(parse)[7])['accounts'][0]['transactions'])
-df_rm_nan["postedDate"] = df_rm_nan["postedDate"].map(convert_ts_dt)
-df_rm_nan.sort_values(by = "postedDate", inplace=True)
-df_rm_nan.head()
-df_rm_nan.tail()
-
+# Function 2
 # Same function as above, but at has one line of changes; Removes NaNs
 """ Accounting for missing values for Balance column (NaNs), and removing them """
 # Function that takes rows (by index) and returns 5 lists
@@ -111,6 +104,7 @@ run_the_function_2_using_apply = pd.Series(np.arange(0, rows)).apply(take_index_
 
 # Desired DataFrame? (Without NaNs)
 df_final_removed_nan = pd.DataFrame({
-    "Loan IDs": loan_ids, "Balance open": bal_open, "Balance close": bal_close
+    "Loan IDs": loan_ids, "Account ID": acc_ids, "Account Number": acc_numbers,
+    "Balance open": bal_open, "Balance close": bal_close
 })
 df_final_removed_nan
